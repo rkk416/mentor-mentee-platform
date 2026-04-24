@@ -11,8 +11,10 @@ const challengeRoute = require("./routes/challenge");
 const feedbackRoute = require("./routes/feedback");
 const authRoute = require("./routes/auth");
 const progressRoute = require("./routes/progress");
+const sessionRoute = require("./routes/session");
 
 // USE ROUTES
+app.use("/api/session", sessionRoute);
 app.use("/api/submission", submissionRoute);
 app.use("/api/challenge", challengeRoute);
 app.use("/api/feedback", feedbackRoute);

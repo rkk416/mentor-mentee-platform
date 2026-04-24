@@ -23,12 +23,21 @@ router.post("/create", async (req, res) => {
   }
 });
 
+
 // GET ALL CHALLENGES
 router.get("/all", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM challenges ORDER BY id DESC");
 
-    console.log("Challenges:", result.rows); // 👈 DEBUG
+    const result = await db.query(`
+      SELECT 
+        c.*, 
+        s.title AS session_title
+      FROM challenges c
+      LEFT JOIN sessions s ON c.session_id = s.id
+      ORDER BY c.id DESC
+    `);
+
+    console.log("Challenges:", result.rows); // debug
 
     res.json(result.rows);
 
@@ -37,5 +46,4 @@ router.get("/all", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 module.exports = router;

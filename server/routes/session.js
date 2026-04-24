@@ -1,20 +1,34 @@
 const router = require("express").Router();
 const db = require("../db");
 
-router.post("/create", async (req, res) => {
-  const { mentor_id, title, start_date } = req.body;
+// CREATE SESSION
+router.post("/", async (req,res)=>{
+  const {title, description} = req.body;
 
-  await db.query(
-    "INSERT INTO sessions(mentor_id,title,start_date) VALUES($1,$2,$3)",
-    [mentor_id, title, start_date]
-  );
+  try{
+    const result = await db.query(
+      "INSERT INTO sessions(title, description) VALUES($1,$2) RETURNING *",
+      [title, description]
+    );
 
-  res.send("Session Created");
+    res.json(result.rows[0]);
+
+  }catch(err){
+    console.log(err);
+    res.status(500).json({error:"Server error"});
+  }
 });
 
-router.get("/all", async (req, res) => {
-  const result = await db.query("SELECT * FROM sessions");
-  res.json(result.rows);
+// GET ALL SESSIONS
+router.get("/", async (req,res)=>{
+  try{
+    const result = await db.query("SELECT * FROM sessions ORDER BY id DESC");
+    res.json(result.rows);
+
+  }catch(err){
+    console.log(err);
+    res.status(500).json({error:"Server error"});
+  }
 });
 
 module.exports = router;

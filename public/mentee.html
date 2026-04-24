@@ -130,6 +130,32 @@ button:hover{
   height:250px;
   margin:auto;
 }
+.stars{
+  font-size:18px;
+  letter-spacing:2px;
+  color:#facc15; /* gold color */
+}
+
+.challenge{
+  background:#f8fafc;
+  padding:12px;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.badge.reviewed{
+  background:#22c55e;
+  color:white;
+  padding:3px 8px;
+  border-radius:6px;
+}
+
+.badge.pending{
+  background:#f59e0b;
+  color:white;
+  padding:3px 8px;
+  border-radius:6px;
+}
 </style>
 
 </head>
@@ -266,14 +292,25 @@ function loadHistory(){
    let total=0,reviewed=0,pending=0;
 
    data.forEach(s=>{
-     if(s.mentee_id!==user.id) return;
+
+     if(Number(s.mentee_id) !== Number(user.id)) return;
 
      total++;
      if(s.status==="reviewed") reviewed++;
      else pending++;
 
+     let stars = "";
+     if(s.score){
+       for(let i=1;i<=5;i++){
+         stars += i <= s.score ? "⭐" : "☆";
+       }
+     } else {
+       stars = "Not rated";
+     }
+
      html+=`
        <div class="challenge">
+
          <b>Challenge:</b> ${s.challenge_id}<br>
          <b>Answer:</b> ${s.answer}<br>
 
@@ -282,21 +319,25 @@ function loadHistory(){
          </span>
 
          <p>💬 ${s.comment || "No feedback yet"}</p>
-         <p>⭐ ${s.score || "-"}</p>
+
+         <p class="stars">${stars}</p>
+
        </div>
      `;
    });
 
-   document.getElementById("history").innerHTML=html;
+   document.getElementById("history").innerHTML = html || "<p>No submissions found</p>";
 
-   document.getElementById("totalS").innerText=total;
-   document.getElementById("reviewed").innerText=reviewed;
-   document.getElementById("pending").innerText=pending;
+   // ✅ FIXED STATS
+   document.getElementById("totalS").innerText = total;
+   document.getElementById("reviewed").innerText = reviewed;
+   document.getElementById("pending").innerText = pending;
 
-   const progress= total? Math.round((reviewed/total)*100):0;
-   document.getElementById("progress").innerText=progress+"%";
+   const progress = total ? Math.round((reviewed/total)*100) : 0;
+   document.getElementById("progress").innerText = progress + "%";
 
-   loadChart(reviewed,pending);
+   // ✅ FIXED CHART
+   loadChart(reviewed, pending);
  });
 }
 
