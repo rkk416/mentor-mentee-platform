@@ -1,11 +1,12 @@
 const router = require("express").Router();
 const db = require("../db");
+const auth = require("../middleware/auth");
 
-// CREATE SESSION
-router.post("/", async (req,res)=>{
-  const {title, description} = req.body;
+// CREATE SESSION (protected)
+router.post("/", auth, async (req, res) => {
+  const { title, description } = req.body;
 
-  try{
+  try {
     const result = await db.query(
       "INSERT INTO sessions(title, description) VALUES($1,$2) RETURNING *",
       [title, description]
@@ -13,21 +14,21 @@ router.post("/", async (req,res)=>{
 
     res.json(result.rows[0]);
 
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    res.status(500).json({error:"Server error"});
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 // GET ALL SESSIONS
-router.get("/", async (req,res)=>{
-  try{
+router.get("/", async (req, res) => {
+  try {
     const result = await db.query("SELECT * FROM sessions ORDER BY id DESC");
     res.json(result.rows);
 
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    res.status(500).json({error:"Server error"});
+    res.status(500).json({ error: "Server error" });
   }
 });
 

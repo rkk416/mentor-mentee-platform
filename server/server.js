@@ -1,9 +1,19 @@
 const express = require("express");
-const app = express();
+const path = require("path");
 const cors = require("cors");
 
-app.use(cors());
+const app = express();
+
+// CORS - allow all origins so the deployed link works
+app.use(cors({
+  origin: "*", 
+  credentials: true
+}));
+
 app.use(express.json());
+
+// SERVE FRONTEND
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ROUTES
 const submissionRoute = require("./routes/submission");
@@ -21,12 +31,8 @@ app.use("/api/feedback", feedbackRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/progress", progressRoute);
 
-// ROOT ROUTE
-app.get("/", (req, res) => {
-  res.send("Backend is running successfully ");
-});
-
 // START SERVER
-app.listen(5000, () => {
-  console.log("Server running on port 5000 ");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

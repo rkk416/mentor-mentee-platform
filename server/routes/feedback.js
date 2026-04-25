@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const db = require("../db");
+const auth = require("../middleware/auth");
 
-// ADD FEEDBACK
-router.post("/", async (req, res) => {
+// ADD FEEDBACK (protected - mentor only)
+router.post("/", auth, async (req, res) => {
   try {
     const { submission_id, comment, score } = req.body;
 

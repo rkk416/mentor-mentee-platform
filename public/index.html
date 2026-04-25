@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MentorHub - Build challenges, coach learners, and track progress">
 <title>MentorHub</title>
 
 <style>
@@ -162,6 +164,15 @@ input{
   border-radius:12px;
   margin-top:10px;
   cursor:pointer;
+  color:white;
+  font-size:15px;
+}
+/* ERROR MSG */
+.error-msg{
+  color:#ff6b6b;
+  font-size:13px;
+  margin-top:5px;
+  display:none;
 }
 /* ANIMATION */
 @keyframes slideLeft{
@@ -175,6 +186,13 @@ input{
 footer{
   text-align:center;
   padding:10px;
+}
+
+/* RESPONSIVE */
+@media(max-width:800px){
+  .main{ flex-direction:column; height:auto; }
+  .left, .right{ width:100%; }
+  .left h1{ font-size:32px; }
 }
 </style>
 </head>
@@ -211,7 +229,7 @@ footer{
     <div class="tags">
       <span>Mentor portal</span>
       <span>Progress tracking</span>
-      <span>mentee protal</span>
+      <span>Mentee portal</span>
     </div>
   </div>
 
@@ -238,7 +256,9 @@ footer{
       <input type="email" id="email" placeholder="Email address">
       <input type="password" id="password" placeholder="Password">
 
-      <button class="enter" onclick="login()">Enter Workspace</button>
+      <p class="error-msg" id="errorMsg"></p>
+
+      <button class="enter" id="loginBtn" onclick="login()">Enter Workspace</button>
 
 
     </div>
@@ -259,31 +279,53 @@ function setRole(r){
   document.getElementById("title").innerText =
     r==="mentor" ? "Mentor workspace access" : "Student workspace access";
 
-  mentorBtn.className = r==="mentor" ? "active" : "inactive";
-  menteeBtn.className = r==="mentee" ? "active" : "inactive";
+  document.getElementById("mentorBtn").className = r==="mentor" ? "active" : "inactive";
+  document.getElementById("menteeBtn").className = r==="mentee" ? "active" : "inactive";
+}
+
+function showError(msg){
+  const el = document.getElementById("errorMsg");
+  el.innerText = msg;
+  el.style.display = "block";
+  setTimeout(()=> el.style.display="none", 4000);
 }
 
 // LOGIN
 function login(){
- fetch("http://localhost:5000/api/auth/login",{
+  const emailVal = document.getElementById("email").value.trim();
+  const passVal = document.getElementById("password").value.trim();
+  const btn = document.getElementById("loginBtn");
+
+  if(!emailVal || !passVal){
+    showError("Please enter email and password");
+    return;
+  }
+
+  btn.innerText = "Logging in...";
+  btn.disabled = true;
+
+ fetch("/api/auth/login",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify({
-    email:email.value,
-    password:password.value
+    email: emailVal,
+    password: passVal
   })
  })
  .then(res=>res.json())
  .then(data=>{
 
+  btn.innerText = "Enter Workspace";
+  btn.disabled = false;
+
   if(!data.user){
-    alert("Login failed ");
+    showError(data.message || "Login failed");
     return;
   }
 
-  //  MAIN FIX HERE
+  //  ROLE CHECK
   if(data.user.role !== role){
-    alert(" Wrong role selected!\nPlease select correct login type.");
+    showError("Wrong role selected! Please select correct login type.");
     return;
   }
 
@@ -296,7 +338,11 @@ function login(){
   }
 
  })
- .catch(()=>alert("Server error "));
+ .catch(()=>{
+   btn.innerText = "Enter Workspace";
+   btn.disabled = false;
+   showError("Server error — make sure backend is running");
+ });
 }
 </script>
 
