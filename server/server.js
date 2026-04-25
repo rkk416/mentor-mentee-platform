@@ -4,7 +4,7 @@ const cors = require("cors");
 
 const app = express();
 
-// CORS - allow all origins so the deployed link works
+// CORS - allow all origins for Render deployment
 app.use(cors({
   origin: "*", 
   credentials: true
@@ -12,7 +12,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// SERVE FRONTEND
+// SERVE FRONTEND (Critical fix #1)
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // ROUTES
