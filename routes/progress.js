@@ -1,21 +1,41 @@
 const router = require("express").Router();
-const db = require("../db");
+const Submission = require("../models/Submission");
 
 // GET LEADERBOARD
 router.get("/", async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT 
-        s.mentee_id,
-        u.name,
-        COUNT(s.id) AS total_submissions
-      FROM submissions s
-      LEFT JOIN users u ON s.mentee_id = u.id
-      GROUP BY s.mentee_id, u.name
-      ORDER BY total_submissions DESC
-    `);
+    const result = await Submission.aggregate([
+      {
+        $group: {
+          _id: "$mentee_id",
+          total_submissions: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      {
+        $unwind: "$user"
+      },
+      {
+        $project: {
+          mentee_id: "$_id",
+          name: "$user.name",
+          total_submissions: 1,
+          _id: 0
+        }
+      },
+      {
+        $sort: { total_submissions: -1 }
+      }
+    ]);
 
-    res.json(result.rows);
+    res.json(result);
 
   } catch (err) {
     console.log("ERROR:", err);
