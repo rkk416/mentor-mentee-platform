@@ -13,7 +13,7 @@ app.use(cors({
 app.use(express.json());
 
 // SERVE FRONTEND (Critical fix #1)
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ROUTES
 const submissionRoute = require("./routes/submission");
