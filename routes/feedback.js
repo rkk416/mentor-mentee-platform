@@ -1,5 +1,6 @@
 const router = require("express").Router();
-const db = require("../db");
+const Feedback = require("../models/Feedback");
+const Submission = require("../models/Submission");
 const auth = require("../middleware/auth");
 
 // ADD FEEDBACK (protected - mentor only)
@@ -11,16 +12,14 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    await db.query(
-      "INSERT INTO feedback(submission_id, comment, score) VALUES($1,$2,$3)",
-      [submission_id, comment, score || null]
-    );
+    await Feedback.create({
+      submission_id,
+      comment,
+      score: score || null
+    });
 
     // ALSO UPDATE STATUS
-    await db.query(
-      "UPDATE submissions SET status = 'reviewed' WHERE id = $1",
-      [submission_id]
-    );
+    await Submission.findByIdAndUpdate(submission_id, { status: "reviewed" });
 
     res.json({ message: "Feedback added" });
 

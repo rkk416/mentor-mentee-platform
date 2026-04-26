@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const db = require("../db");
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
@@ -17,17 +17,14 @@ router.post("/register", async (req, res) => {
     }
 
     // Check if email already exists
-    const existing = await db.query("SELECT id FROM users WHERE email=$1", [email]);
-    if (existing.rows.length > 0) {
+    const existing = await User.findOne({ email });
+    if (existing) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const hash = await bcrypt.hash(password, 10);
 
-    await db.query(
-      "INSERT INTO users(name,email,password,role) VALUES($1,$2,$3,$4)",
-      [name, email, hash, role]
-    );
+    await User.create({ name, email, password: hash, role });
 
     res.json({ message: "Registered" });
 
@@ -46,23 +43,21 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const result = await db.query("SELECT * FROM users WHERE email=$1", [email]);
+    const user = await User.findOne({ email });
 
-    if (result.rows.length === 0)
+    if (!user)
       return res.status(400).json({ message: "User not found" });
 
-    const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password);
 
     if (!valid)
       return res.status(400).json({ message: "Wrong password" });
 
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
       expiresIn: "7d"
     });
 
-    // Don't send password back to client
-    const { password: _, ...safeUser } = user;
+    const safeUser = { id: user._id, name: user.name, email: user.email, role: user.role };
 
     res.json({ token, user: safeUser });
 
